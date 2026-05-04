@@ -27,6 +27,7 @@ const RUBY_EXTENSIONLESS_FILES = new Set([
  * TypeScript emits a compile error: "Property 'NewLang' is missing in type..."
  */
 const EXTENSION_MAP: Record<SupportedLanguages, readonly string[]> = {
+  [SupportedLanguages.ActionScript]: ['.as'],
   [SupportedLanguages.JavaScript]: ['.js', '.jsx', '.mjs', '.cjs'],
   [SupportedLanguages.TypeScript]: ['.ts', '.tsx', '.mts', '.cts'],
   [SupportedLanguages.Python]: ['.py'],
@@ -85,6 +86,7 @@ export const getLanguageFromFilename = (filename: string): SupportedLanguages | 
  * TypeScript emits a compile error.
  */
 const SYNTAX_MAP: Record<SupportedLanguages, string> = {
+  [SupportedLanguages.ActionScript]: 'actionscript',
   [SupportedLanguages.JavaScript]: 'javascript',
   [SupportedLanguages.TypeScript]: 'typescript',
   [SupportedLanguages.Python]: 'python',

@@ -5,6 +5,7 @@
  * The CLI uses it throughout the ingestion pipeline; the web uses it for display.
  */
 export enum SupportedLanguages {
+  ActionScript = 'actionscript',
   JavaScript = 'javascript',
   TypeScript = 'typescript',
   Python = 'python',

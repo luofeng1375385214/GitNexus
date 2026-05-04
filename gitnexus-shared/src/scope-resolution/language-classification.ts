@@ -25,6 +25,7 @@ export type LanguageClassification = 'production' | 'experimental' | 'quarantine
  */
 export const LanguageClassifications: Readonly<Record<SupportedLanguages, LanguageClassification>> =
   {
+    [SupportedLanguages.ActionScript]: 'experimental',
     [SupportedLanguages.JavaScript]: 'production',
     [SupportedLanguages.TypeScript]: 'production',
     [SupportedLanguages.Python]: 'production',

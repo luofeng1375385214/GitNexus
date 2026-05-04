@@ -25,8 +25,10 @@ import { swiftProvider } from './swift.js';
 import { dartProvider } from './dart.js';
 import { vueProvider } from './vue.js';
 import { cobolProvider } from './cobol.js';
+import { actionscriptProvider } from './actionscript.js';
 
 export const providers = {
+  [SupportedLanguages.ActionScript]: actionscriptProvider,
   [SupportedLanguages.JavaScript]: javascriptProvider,
   [SupportedLanguages.TypeScript]: typescriptProvider,
   [SupportedLanguages.Python]: pythonProvider,
