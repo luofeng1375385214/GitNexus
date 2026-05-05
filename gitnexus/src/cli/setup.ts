@@ -71,14 +71,8 @@ function resolveGitnexusBin(): string | null {
 function getMcpEntry() {
   const bin = resolveGitnexusBin();
 
-  // LadybugDB mmaps the entire database file.  Large indexes (200 MB+)
-  // can exhaust the default V8 heap and trigger a segfault (exit code 139)
-  // during lazy connection pre-warm.  4 GB is a safe ceiling that prevents
-  // crashes without pre-allocating memory on small projects.
-  const env = { NODE_OPTIONS: '--max-old-space-size=4096' };
-
   if (bin) {
-    return { command: bin, args: ['mcp'], env };
+    return { command: bin, args: ['mcp'] };
   }
 
   // Fallback: npx (works without a global install, but slow cold-start)
@@ -86,13 +80,11 @@ function getMcpEntry() {
     return {
       command: 'cmd',
       args: ['/c', 'npx', '-y', 'gitnexus@latest', 'mcp'],
-      env,
     };
   }
   return {
     command: 'npx',
     args: ['-y', 'gitnexus@latest', 'mcp'],
-    env,
   };
 }
 
@@ -102,16 +94,15 @@ function getMcpEntry() {
  */
 function getOpenCodeMcpEntry() {
   const bin = resolveGitnexusBin();
-  const env = { NODE_OPTIONS: '--max-old-space-size=4096' };
 
   if (bin) {
-    return { type: 'local', command: [bin, 'mcp'], env };
+    return { type: 'local', command: [bin, 'mcp'] };
   }
 
   if (process.platform === 'win32') {
-    return { type: 'local', command: ['cmd', '/c', 'npx', '-y', 'gitnexus@latest', 'mcp'], env };
+    return { type: 'local', command: ['cmd', '/c', 'npx', '-y', 'gitnexus@latest', 'mcp'] };
   }
-  return { type: 'local', command: ['npx', '-y', 'gitnexus@latest', 'mcp'], env };
+  return { type: 'local', command: ['npx', '-y', 'gitnexus@latest', 'mcp'] };
 }
 
 /**

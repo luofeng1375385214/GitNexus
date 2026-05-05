@@ -8,8 +8,14 @@
 
 import { startMCPServer } from '../mcp/server.js';
 import { LocalBackend } from '../mcp/local/local-backend.js';
+import { ensureHeap } from './ensure-heap.js';
 
 export const mcpCommand = async () => {
+  // LadybugDB mmaps the entire database file.  Large indexes (200 MB+)
+  // exhaust the default V8 heap and segfault during connection pre-warm.
+  // Re-exec with 4 GB heap before any MCP communication starts.
+  if (ensureHeap(4096)) return;
+
   // Prevent unhandled errors from crashing the MCP server process.
   // LadybugDB lock conflicts and transient errors should degrade gracefully.
   process.on('uncaughtException', (err) => {

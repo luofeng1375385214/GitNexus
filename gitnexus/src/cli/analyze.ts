@@ -10,8 +10,8 @@
 
 import path from 'path';
 import { execFileSync } from 'child_process';
-import v8 from 'v8';
 import cliProgress from 'cli-progress';
+import { ensureHeap } from './ensure-heap.js';
 import { closeLbug } from '../core/lbug/lbug-adapter.js';
 import {
   getStoragePaths,
@@ -69,23 +69,24 @@ const HEAP_FLAG = `--max-old-space-size=${HEAP_MB}`;
 const STACK_KB = 4096;
 const STACK_FLAG = `--stack-size=${STACK_KB}`;
 
-/** Re-exec the process with an 8GB heap and larger stack if we're currently below that. */
-function ensureHeap(): boolean {
+/** Re-exec with 8 GB heap + 4096 KB stack (analyze needs both). */
+function ensureHeapAndStack(): boolean {
+  if (ensureHeap(HEAP_MB)) {
+    // ensureHeap re-execed with the larger heap but without --stack-size
+    // (which cannot go in NODE_OPTIONS on Node 24+).  Re-exec once more
+    // to add the stack flag as a direct CLI argument.
+    return true;
+  }
+
+  // Heap is already large enough — check if we need the stack flag.
   const nodeOpts = process.env.NODE_OPTIONS || '';
-  if (nodeOpts.includes('--max-old-space-size')) return false;
-
-  const v8Heap = v8.getHeapStatistics().heap_size_limit;
-  if (v8Heap >= HEAP_MB * 1024 * 1024 * 0.9) return false;
-
-  // --stack-size is a V8 flag not allowed in NODE_OPTIONS on Node 24+,
-  // so pass it only as a direct CLI argument, not via the environment.
-  const cliFlags = [HEAP_FLAG];
-  if (!nodeOpts.includes('--stack-size')) cliFlags.push(STACK_FLAG);
+  if (nodeOpts.includes('--stack-size')) return false;
+  if (process.argv.some((a) => a.startsWith('--stack-size'))) return false;
 
   try {
-    execFileSync(process.execPath, [...cliFlags, ...process.argv.slice(1)], {
+    execFileSync(process.execPath, [HEAP_FLAG, STACK_FLAG, ...process.argv.slice(1)], {
       stdio: 'inherit',
-      env: { ...process.env, NODE_OPTIONS: `${nodeOpts} ${HEAP_FLAG}`.trim() },
+      env: process.env,
     });
   } catch (e: any) {
     process.exitCode = e.status ?? 1;
@@ -140,7 +141,7 @@ export interface AnalyzeOptions {
 }
 
 export const analyzeCommand = async (inputPath?: string, options?: AnalyzeOptions) => {
-  if (ensureHeap()) return;
+  if (ensureHeapAndStack()) return;
 
   // Install fatal handlers immediately after re-exec resolution so any
   // async error that escapes the try/catch below (#1169) surfaces with

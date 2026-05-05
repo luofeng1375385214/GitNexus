@@ -73,16 +73,13 @@ gitnexus setup
   "mcpServers": {
     "gitnexus": {
       "command": "gitnexus",
-      "args": ["mcp"],
-      "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096"
-      }
+      "args": ["mcp"]
     }
   }
 }
 ```
 
-> `env.NODE_OPTIONS` 防止大型索引（200 MB+）加载时内存不足导致 MCP 进程崩溃。`gitnexus setup` 会自动包含此配置。
+> MCP 启动时自动检测堆大小，大型索引会自动扩到 4 GB，无需手动配置 `NODE_OPTIONS`。
 
 ### AI 工具会自动调用吗？
 
@@ -231,7 +228,7 @@ cd GitNexus/gitnexus && node dist/cli/index.js --version  # 开发版本
 gitnexus analyze /path/to/project
 ```
 
-**原因 2：大型索引内存不足。** 索引文件超过 200 MB 时，默认 V8 堆不够。在 MCP 配置中加 `env`：
+**原因 2：旧版 gitnexus 不自带内存管理。** gitnexus >= 1.7.0 的 MCP 启动时自动扩堆到 4 GB。旧版没有这个机制，需要手动加 `env`：
 
 ```json
 {
@@ -241,15 +238,12 @@ gitnexus analyze /path/to/project
 }
 ```
 
-`gitnexus setup` 会自动包含此配置。
-
 **原因 3：开发版指向。** 如果使用本地开发版 GitNexus，确保 MCP 配置指向正确的 `dist/cli/index.js`：
 
 ```json
 {
   "command": "node",
-  "args": ["G:/MyProject/GitNexus/gitnexus/dist/cli/index.js", "mcp"],
-  "env": { "NODE_OPTIONS": "--max-old-space-size=4096" }
+  "args": ["G:/MyProject/GitNexus/gitnexus/dist/cli/index.js", "mcp"]
 }
 ```
 
