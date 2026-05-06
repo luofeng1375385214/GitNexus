@@ -88,8 +88,17 @@ gitnexus setup
 
 ```markdown
 ## 代码查询
-本项目使用 GitNexus 索引了代码知识图谱。做代码分析前先用 MCP 工具查询：
-- 找代码: query  |  看调用关系: context  |  改代码前做影响分析: impact
+
+本项目已通过 GitNexus 建立代码知识图谱，以下操作必须先查图谱再动手：
+
+| 场景 | 用什么 |
+|------|--------|
+| 找代码 / 搜索符号 | `query` |
+| 看调用关系（谁调用它、它调用谁） | `context` |
+| 改代码前评估影响范围 | `impact`（必做，防止改崩） |
+| 跨文件重命名 | `rename`（不要手动 find-replace） |
+| 提交前检查变更影响 | `detect_changes` |
+| 复杂结构查询 | `cypher` |
 ```
 
 ### 使用示例
