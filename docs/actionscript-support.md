@@ -2,34 +2,127 @@
 
 ## 快速开始
 
+### 第一步：安装 GitNexus
+
+**方式一：全局安装（推荐）**
+
 ```bash
-# 1. 排除自动生成文件（推荐，否则索引结果会被噪音淹没）
-cat > /path/to/game-project/.gitnexusignore << 'EOF'
+# 需要 Node.js >= 18（推荐 >= 20）
+node -v   # 先检查版本
+
+# 全局安装
+npm install -g gitnexus
+
+# 验证安装
+gitnexus --version
+```
+
+**方式二：从源码安装（开发版）**
+
+如果你已经 clone 了 GitNexus 仓库到本地（比如 `G:\MyProject\GitNexus`）：
+
+```bash
+cd /path/to/GitNexus/gitnexus
+
+# 安装依赖
+npm install
+
+# 构建
+npm run build
+
+# 验证（后续所有 gitnexus 命令都需要用这个路径）
+node dist/cli/index.js --version
+```
+
+> 从源码安装时，下面的所有 `gitnexus` 命令都需要替换为 `node /path/to/GitNexus/gitnexus/dist/cli/index.js`。
+
+### 第二步：排除自动生成文件
+
+AS3 游戏项目通常有大量自动生成的代码（协议导出、配置表、UI 绑定），索引后会严重干扰搜索结果。在 **AS3 项目根目录**（不是 GitNexus 目录）创建 `.gitnexusignore`：
+
+```bash
+# 把下面的路径替换为你项目里实际的自动生成文件目录
+# 语法和 .gitignore 一样
+cat > /你的AS3项目路径/.gitnexusignore << 'EOF'
 src/txdata/vo/
 src/txdata/ui/
 src/txdata/ro/
 src/txdata/Protocol.as
 src/txdata/ProtocolData.as
 EOF
-
-# 2. 索引项目
-gitnexus analyze /path/to/as3-project
-
-#    如果项目没有 .git 目录，加 --skip-git：
-gitnexus analyze --skip-git /path/to/as3-project
-
-# 3. 配置 MCP（AI 工具自动发现 GitNexus）
-gitnexus setup
-
-# 4. 查询
-gitnexus query "UserModel"                # 搜索符号
-gitnexus context UserModel.getName        # 调用关系
-gitnexus impact UserModel.getName -d down # 影响分析
 ```
 
-> **无需编译 C++ 模块。** ActionScript 使用独立正则解析器（`standalone` 策略），不依赖 tree-sitter。原因是 `tree-sitter-actionscript` 语法的 ABI 15 与 GitNexus 使用的 tree-sitter 0.21.x (ABI 14) 不兼容。
+> 这步是可选的，但强烈建议。不排除的话，自动生成代码的节点会占 60%+，导致搜索和影响分析全是噪音。
 
-> **代码改动后需要手动重新索引。** GitNexus 不会自动监听文件变化。修改代码后重新运行 `gitnexus analyze /path/to/project` 即可，有 git 的项目会基于 commit diff 做增量更新（只索引变更文件），速度比首次快很多。
+### 第三步：索引项目
+
+```bash
+# 全局安装的用户直接用：
+gitnexus analyze /你的AS3项目路径
+
+# 源码安装的用户：
+node /path/to/GitNexus/gitnexus/dist/cli/index.js analyze /你的AS3项目路径
+
+# 如果项目没有 .git 目录，加 --skip-git：
+gitnexus analyze --skip-git /你的AS3项目路径
+```
+
+索引完成后会显示统计信息（如 `124,082 nodes | 212,405 edges | 300 flows`），表示成功。
+
+> **Windows 用户注意：** 如果索引时 Segfault（进程直接退出无报错），需要预设内存：
+> ```bash
+> export NODE_OPTIONS="--max-old-space-size=8192"
+> gitnexus analyze /你的AS3项目路径
+> ```
+
+### 第四步：配置 AI 工具
+
+```bash
+# 一键配置（自动检测已安装的 Claude Code、Cursor、Codex、OpenCode）
+gitnexus setup
+```
+
+配置完成后重启 AI 工具，GitNexus 的 MCP 工具就可以用了。
+
+手动配置方式（任何支持 MCP 的 AI 工具）：
+
+```json
+{
+  "mcpServers": {
+    "gitnexus": {
+      "command": "gitnexus",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+> MCP 启动时自动检测堆大小，大型索引会自动扩到 4 GB，无需手动配置 `NODE_OPTIONS`。
+
+### 第五步：使用
+
+在 AI 工具中直接用自然语言描述，或者用命令行查询：
+
+```bash
+# 搜索符号
+gitnexus query "UserModel"
+
+# 查看调用关系
+gitnexus context UserModel.getName
+
+# 影响分析（改了这个方法会影响什么）
+gitnexus impact UserModel.getName -d downstream
+```
+
+在 AI 工具中对应的自然语言：
+
+| 你说的话 | AI 会调用的工具 |
+|---------|---------------|
+| "找处理登录的方法" | `query "登录请求"` |
+| "loginReqServerInfo 谁会调用它" | `context "loginReqServerInfo"` |
+| "改了这个方法会影响什么" | `impact "方法名" -d downstream` |
+
+> **代码改动后需要手动重新索引。** GitNexus 不会自动监听文件变化。修改代码后重新运行 `gitnexus analyze /你的AS3项目路径` 即可，有 git 的项目会增量更新（只索引变更文件），速度比首次快很多。
 
 ---
 
