@@ -23,9 +23,12 @@ npm run build
 
 # 验证构建成功
 node dist/cli/index.js --version
+
+# 设置别名（加到 ~/.bashrc 里就不用每次都输了）
+alias gitnexus="node '<GITNEXUS_HOME>/gitnexus/dist/cli/index.js'"
 ```
 
-> 后续所有命令中 `gitnexus` 都要替换为 `node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js`。
+> 设置 alias 后，后续所有命令直接用 `gitnexus` 即可，和全局安装一样。
 
 ### 第二步：排除自动生成文件
 
@@ -48,10 +51,10 @@ EOF
 ### 第三步：索引项目
 
 ```bash
-node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze <AS3_PROJECT>
+gitnexus analyze <AS3_PROJECT>
 
 # 如果项目没有 .git 目录，加 --skip-git：
-node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze --skip-git <AS3_PROJECT>
+gitnexus analyze --skip-git <AS3_PROJECT>
 ```
 
 索引完成后会显示统计信息（如 `124,082 nodes | 212,405 edges | 300 flows`），表示成功。
@@ -59,7 +62,7 @@ node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze --skip-git <AS3_PROJECT>
 > **Windows 用户注意：** 如果索引时 Segfault（进程直接退出无报错），需要预设内存：
 > ```bash
 > export NODE_OPTIONS="--max-old-space-size=8192"
-> node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze <AS3_PROJECT>
+> gitnexus analyze <AS3_PROJECT>
 > ```
 > 建议把 `export NODE_OPTIONS="--max-old-space-size=8192"` 写入 `~/.bashrc`，一劳永逸。
 
@@ -77,6 +80,8 @@ node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze --skip-git <AS3_PROJECT>
   }
 }
 ```
+
+> 把 `<GITNEXUS_HOME>` 替换为你本地的实际路径。MCP 配置里必须用完整路径，不能用 alias。
 
 各工具的配置文件位置：
 
@@ -96,13 +101,13 @@ node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze --skip-git <AS3_PROJECT>
 
 ```bash
 # 搜索符号
-node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js query "UserModel" --repo <项目名>
+gitnexus query "UserModel" --repo <项目名>
 
 # 查看调用关系
-node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js context UserModel.getName --repo <项目名>
+gitnexus context UserModel.getName --repo <项目名>
 
 # 影响分析（改了这个方法会影响什么）
-node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js impact UserModel.getName --repo <项目名> -d downstream
+gitnexus impact UserModel.getName --repo <项目名> -d downstream
 ```
 
 在 AI 工具中对应的自然语言：
