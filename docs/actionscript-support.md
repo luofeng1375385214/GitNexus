@@ -29,6 +29,8 @@ gitnexus impact UserModel.getName -d down # 影响分析
 
 > **无需编译 C++ 模块。** ActionScript 使用独立正则解析器（`standalone` 策略），不依赖 tree-sitter。原因是 `tree-sitter-actionscript` 语法的 ABI 15 与 GitNexus 使用的 tree-sitter 0.21.x (ABI 14) 不兼容。
 
+> **代码改动后需要手动重新索引。** GitNexus 不会自动监听文件变化。修改代码后重新运行 `gitnexus analyze /path/to/project` 即可，有 git 的项目会基于 commit diff 做增量更新（只索引变更文件），速度比首次快很多。
+
 ---
 
 ## 图谱能力
