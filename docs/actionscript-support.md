@@ -64,20 +64,21 @@ src/txdata/ProtocolData.as
 ### 第三步：索引项目
 
 ```bash
+# Git Bash：
+export NODE_OPTIONS="--max-old-space-size=8192"
+gitnexus analyze <AS3_PROJECT>
+
+# PowerShell：
+$env:NODE_OPTIONS="--max-old-space-size=8192"
 gitnexus analyze <AS3_PROJECT>
 
 # 如果项目没有 .git 目录，加 --skip-git：
 gitnexus analyze --skip-git <AS3_PROJECT>
 ```
 
-索引完成后会显示统计信息（如 `124,082 nodes | 212,405 edges | 300 flows`），表示成功。
+> 预设 `NODE_OPTIONS` 是必须的，否则 Windows 下 re-exec 会触发 Segfault（进程直接退出，无报错）。建议写进 shell 配置文件（Git Bash 写 `~/.bashrc`，PowerShell 写 `$PROFILE`），一次设置永久生效。
 
-> **Windows 用户注意：** 如果索引时 Segfault（进程直接退出无报错），需要预设内存：
-> ```bash
-> export NODE_OPTIONS="--max-old-space-size=8192"
-> gitnexus analyze <AS3_PROJECT>
-> ```
-> 建议把 `export NODE_OPTIONS="--max-old-space-size=8192"` 写入 `~/.bashrc`，一劳永逸。
+索引完成后会显示统计信息（如 `124,082 nodes | 212,405 edges | 300 flows`），表示成功。
 
 ### 第四步：配置 AI 工具
 
