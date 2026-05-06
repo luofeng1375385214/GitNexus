@@ -2,27 +2,18 @@
 
 ## 快速开始
 
-### 第一步：安装 GitNexus
+以下假设你已经拿到了 GitNexus 源码（包含 AS3 支持），放在本地的某个目录。文档中用 `<GITNEXUS_HOME>` 表示 GitNexus 源码根目录，用 `<AS3_PROJECT>` 表示你的 AS3 游戏项目路径。
 
-**方式一：全局安装（推荐）**
+> 例如：`<GITNEXUS_HOME>` = `G:\MyProject\GitNexus`，`<AS3_PROJECT>` = `G:\sh4g\client\proj`
 
-```bash
-# 需要 Node.js >= 18（推荐 >= 20）
-node -v   # 先检查版本
-
-# 全局安装
-npm install -g gitnexus
-
-# 验证安装
-gitnexus --version
-```
-
-**方式二：从源码安装（开发版）**
-
-如果你已经 clone 了 GitNexus 仓库到本地（比如 `G:\MyProject\GitNexus`）：
+### 第一步：构建 GitNexus
 
 ```bash
-cd /path/to/GitNexus/gitnexus
+# 确认 Node.js 版本（需要 >= 18，推荐 >= 20）
+node -v
+
+# 进入 gitnexus 子目录
+cd <GITNEXUS_HOME>/gitnexus
 
 # 安装依赖
 npm install
@@ -30,20 +21,20 @@ npm install
 # 构建
 npm run build
 
-# 验证（后续所有 gitnexus 命令都需要用这个路径）
+# 验证构建成功
 node dist/cli/index.js --version
 ```
 
-> 从源码安装时，下面的所有 `gitnexus` 命令都需要替换为 `node /path/to/GitNexus/gitnexus/dist/cli/index.js`。
+> 后续所有命令中 `gitnexus` 都要替换为 `node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js`。
 
 ### 第二步：排除自动生成文件
 
-AS3 游戏项目通常有大量自动生成的代码（协议导出、配置表、UI 绑定），索引后会严重干扰搜索结果。在 **AS3 项目根目录**（不是 GitNexus 目录）创建 `.gitnexusignore`：
+AS3 游戏项目通常有大量自动生成的代码（协议导出、配置表、UI 绑定），索引后会严重干扰搜索结果。在 **AS3 项目根目录**创建 `.gitnexusignore`：
 
 ```bash
-# 把下面的路径替换为你项目里实际的自动生成文件目录
+# 路径和目录名根据你项目实际情况调整
 # 语法和 .gitignore 一样
-cat > /你的AS3项目路径/.gitnexusignore << 'EOF'
+cat > <AS3_PROJECT>/.gitnexusignore << 'EOF'
 src/txdata/vo/
 src/txdata/ui/
 src/txdata/ro/
@@ -57,14 +48,10 @@ EOF
 ### 第三步：索引项目
 
 ```bash
-# 全局安装的用户直接用：
-gitnexus analyze /你的AS3项目路径
-
-# 源码安装的用户：
-node /path/to/GitNexus/gitnexus/dist/cli/index.js analyze /你的AS3项目路径
+node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze <AS3_PROJECT>
 
 # 如果项目没有 .git 目录，加 --skip-git：
-gitnexus analyze --skip-git /你的AS3项目路径
+node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze --skip-git <AS3_PROJECT>
 ```
 
 索引完成后会显示统计信息（如 `124,082 nodes | 212,405 edges | 300 flows`），表示成功。
@@ -72,30 +59,34 @@ gitnexus analyze --skip-git /你的AS3项目路径
 > **Windows 用户注意：** 如果索引时 Segfault（进程直接退出无报错），需要预设内存：
 > ```bash
 > export NODE_OPTIONS="--max-old-space-size=8192"
-> gitnexus analyze /你的AS3项目路径
+> node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js analyze <AS3_PROJECT>
 > ```
+> 建议把 `export NODE_OPTIONS="--max-old-space-size=8192"` 写入 `~/.bashrc`，一劳永逸。
 
 ### 第四步：配置 AI 工具
 
-```bash
-# 一键配置（自动检测已安装的 Claude Code、Cursor、Codex、OpenCode）
-gitnexus setup
-```
-
-配置完成后重启 AI 工具，GitNexus 的 MCP 工具就可以用了。
-
-手动配置方式（任何支持 MCP 的 AI 工具）：
+在 AI 工具的 MCP 配置文件中添加：
 
 ```json
 {
   "mcpServers": {
     "gitnexus": {
-      "command": "gitnexus",
-      "args": ["mcp"]
+      "command": "node",
+      "args": ["<GITNEXUS_HOME>/gitnexus/dist/cli/index.js", "mcp"]
     }
   }
 }
 ```
+
+各工具的配置文件位置：
+
+| AI 工具 | 配置文件路径 |
+|---------|------------|
+| Claude Code | `~/.claude.json` 中的 `mcpServers` 字段 |
+| Cursor | `~/.cursor/mcp.json` |
+| 其他工具 | 参考对应工具的 MCP 配置文档 |
+
+配置完成后重启 AI 工具，GitNexus 的 MCP 工具就可以用了。
 
 > MCP 启动时自动检测堆大小，大型索引会自动扩到 4 GB，无需手动配置 `NODE_OPTIONS`。
 
@@ -105,13 +96,13 @@ gitnexus setup
 
 ```bash
 # 搜索符号
-gitnexus query "UserModel"
+node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js query "UserModel" --repo <项目名>
 
 # 查看调用关系
-gitnexus context UserModel.getName
+node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js context UserModel.getName --repo <项目名>
 
 # 影响分析（改了这个方法会影响什么）
-gitnexus impact UserModel.getName -d downstream
+node <GITNEXUS_HOME>/gitnexus/dist/cli/index.js impact UserModel.getName --repo <项目名> -d downstream
 ```
 
 在 AI 工具中对应的自然语言：
