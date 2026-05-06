@@ -15,6 +15,9 @@ EOF
 # 2. 索引项目
 gitnexus analyze /path/to/as3-project
 
+#    如果项目没有 .git 目录，加 --skip-git：
+gitnexus analyze --skip-git /path/to/as3-project
+
 # 3. 配置 MCP（AI 工具自动发现 GitNexus）
 gitnexus setup
 
@@ -206,6 +209,26 @@ src/txdata/ProtocolData.as
 ### ActionScript 需要编译 tree-sitter 吗？
 
 不需要。使用独立正则解析器。
+
+### 项目没有 .git 怎么办？
+
+加 `--skip-git` 即可索引任意目录：
+
+```bash
+gitnexus analyze --skip-git /path/to/code
+```
+
+**无 git 模式的差异：**
+
+| 功能 | 有 git | 无 git (`--skip-git`) |
+|------|--------|----------------------|
+| 符号提取 / 调用链 / 影响分析 | 完整支持 | 完整支持 |
+| `.gitignore` 过滤 | 自动生效 | 不读取（只读 `.gitnexusignore`） |
+| 增量更新（只索引变更文件） | 基于 commit diff | 不可用（每次全量重建） |
+| `detect_changes`（未提交变更分析） | 可用 | 不可用 |
+| MCP 查询 / AI 工具集成 | 完整支持 | 完整支持 |
+
+> 建议：即使是纯客户端项目，也用 `git init` 初始化一个仓库，可以享受增量更新和 `.gitignore` 自动过滤。
 
 ### Windows 下索引时 Segfault？
 
