@@ -48,10 +48,11 @@ gitnexus impact UserModel.getName -d down # 影响分析
 
 ## 版本要求
 
-| 依赖 | 最低版本 |
-|------|----------|
-| Node.js | >= 20.0.0 |
-| gitnexus | >= 1.7.0（完整 AS3 支持首次包含在此版本） |
+| 依赖 | 最低版本 | 说明 |
+|------|----------|------|
+| Node.js | >= 20.0.0 | 官方稳定支持版本 |
+| Node.js | >= 18.0.0 | 实际可运行（`fetch`/`AbortSignal.timeout` 在 18.x 为实验性） |
+| gitnexus | >= 1.7.0 | 完整 AS3 支持首次包含在此版本 |
 
 ---
 
