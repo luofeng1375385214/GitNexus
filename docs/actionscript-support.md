@@ -6,7 +6,7 @@
 
 > 例如：`<GITNEXUS_HOME>` = `G:\MyProject\GitNexus`，`<AS3_PROJECT>` = `G:\sh4g\client\proj`
 
-### 第一步：构建 GitNexus
+### 第一步：构建并全局链接
 
 ```bash
 # 确认 Node.js 版本（需要 >= 18，推荐 >= 20）
@@ -21,14 +21,14 @@ npm install
 # 构建
 npm run build
 
-# 验证构建成功
-node dist/cli/index.js --version
+# 全局链接（在 Git Bash 和 PowerShell 中都可以用）
+npm link
 
-# 设置别名（加到 ~/.bashrc 里就不用每次都输了）
-alias gitnexus="node '<GITNEXUS_HOME>/gitnexus/dist/cli/index.js'"
+# 验证
+gitnexus --version
 ```
 
-> 设置 alias 后，后续所有命令直接用 `gitnexus` 即可，和全局安装一样。
+> `npm link` 会创建一个全局符号链接，指向你本地的 GitNexus 源码。之后在任意目录、任意终端（Git Bash、PowerShell）中都能直接用 `gitnexus` 命令。每次 `npm run build` 后新代码自动生效，不需要重新 link。
 
 ### 第二步：排除自动生成文件
 
@@ -88,14 +88,14 @@ gitnexus analyze --skip-git <AS3_PROJECT>
 {
   "mcpServers": {
     "gitnexus": {
-      "command": "node",
-      "args": ["<GITNEXUS_HOME>/gitnexus/dist/cli/index.js", "mcp"]
+      "command": "gitnexus",
+      "args": ["mcp"]
     }
   }
 }
 ```
 
-> 把 `<GITNEXUS_HOME>` 替换为你本地的实际路径。MCP 配置里必须用完整路径，不能用 alias。
+> 也可以用 `gitnexus setup` 一键配置（支持 Claude Code、Cursor、Codex、OpenCode）。
 
 各工具的配置文件位置：
 
@@ -355,14 +355,10 @@ export NODE_OPTIONS="--max-old-space-size=8192"
 
 MCP 进程崩溃，通常由以下原因导致：
 
-**原因 1：LadybugDB 版本不匹配。** 如果用开发版 `gitnexus analyze` 索引了项目，但 MCP 启动的是全局安装的 `gitnexus`（不同版本），LadybugDB 原生模块读取数据库时会 segfault。
+**原因 1：LadybugDB 版本不匹配。** 如果同时存在全局 `npm install -g gitnexus` 和本地 `npm link`，两者的 LadybugDB 版本可能不同，读取数据库时会 segfault。
 
 ```bash
-# 检查版本
-gitnexus --version                    # 全局版本
-cd GitNexus/gitnexus && node dist/cli/index.js --version  # 开发版本
-
-# 解决：重新索引（使用 MCP 将要启动的同一个 gitnexus 版本）
+# 解决：重新索引（确保用的是同一个 gitnexus）
 gitnexus analyze /path/to/project
 ```
 
@@ -373,15 +369,6 @@ gitnexus analyze /path/to/project
   "command": "gitnexus",
   "args": ["mcp"],
   "env": { "NODE_OPTIONS": "--max-old-space-size=4096" }
-}
-```
-
-**原因 3：开发版指向。** 如果使用本地开发版 GitNexus，确保 MCP 配置指向正确的 `dist/cli/index.js`：
-
-```json
-{
-  "command": "node",
-  "args": ["G:/MyProject/GitNexus/gitnexus/dist/cli/index.js", "mcp"]
 }
 ```
 
